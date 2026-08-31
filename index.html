@@ -2,140 +2,971 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Value Trainer Test</title>
+
+<meta
+name=“viewport”
+content=“width=device-width, initial-scale=1.0”
+
+<title>Value Trainer</title>
 <style>
+*{
+  box-sizing:border-box;
+}
 body{
   margin:0;
   background:#181818;
-  color:white;
+  color:#eee;
   font-family:Arial,sans-serif;
 }
 main{
   max-width:600px;
   margin:auto;
-  padding:20px;
+  padding:18px 14px 30px;
 }
 h1{
   text-align:center;
+  margin:5px 0;
+  letter-spacing:1px;
 }
-p{
+.sub{
   text-align:center;
   color:#aaa;
+  margin-bottom:15px;
 }
+/* SCORE BAR */
+.bar{
+  background:#282828;
+  border-radius:14px;
+  padding:14px;
+  display:flex;
+  justify-content:space-between;
+  font-size:14px;
+  margin-bottom:10px;
+}
+/* TABS */
+.tabs{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:6px;
+  margin-bottom:10px;
+}
+.tabs button{
+  border:0;
+  border-radius:10px;
+  padding:12px 5px;
+  background:#383838;
+  color:#eee;
+  font:inherit;
+}
+.tabs button.active{
+  background:#eee;
+  color:#111;
+}
+/* CARD */
+.card{
+  background:#282828;
+  border-radius:14px;
+  padding:14px;
+}
+.q{
+  text-align:center;
+  font-weight:bold;
+  margin:5px 0 15px;
+}
+/* COMPARE */
 .pair{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:15px;
-  margin-top:25px;
+  gap:12px;
 }
-.color{
-  height:250px;
-  border-radius:15px;
+.swatch{
+  height:220px;
   border:3px solid transparent;
-}
-button{
-  border:0;
   border-radius:12px;
-  padding:15px;
-  background:#333;
-  color:white;
-  font-size:18px;
-  margin-top:20px;
-  width:100%;
+  padding:0;
 }
-#result{
+.swatch:active{
+  border-color:white;
+}
+/* GUESS */
+.color{
+  height:200px;
+  border-radius:12px;
+  margin-bottom:12px;
+}
+.answers{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+}
+.answers button{
+  font-size:18px;
+  border:0;
+  border-radius:10px;
+  padding:12px;
+  background:#383838;
+  color:#eee;
+}
+/* MATCH */
+.target-title{
   text-align:center;
-  font-size:22px;
+  font-size:13px;
+  color:#aaa;
+  margin-bottom:6px;
+}
+.your-title{
+  text-align:center;
+  font-size:13px;
+  color:#aaa;
+  margin-top:15px;
+  margin-bottom:6px;
+}
+.big{
+  text-align:center;
+  font-size:28px;
   font-weight:bold;
+  margin:8px;
+}
+input[type="range"]{
+  width:100%;
+  accent-color:white;
+}
+.step-control{
+  text-align:center;
+  margin-top:12px;
+  color:#aaa;
+}
+select{
+  background:#383838;
+  color:#eee;
+  border:0;
+  border-radius:8px;
+  padding:7px 10px;
+  margin-left:5px;
+}
+.check{
+  width:100%;
+  border:0;
+  border-radius:10px;
+  padding:12px;
+  margin-top:12px;
+  background:#eee;
+  color:#111;
+  font-weight:bold;
+  font-size:16px;
+}
+/* FEEDBACK */
+.feedback{
+  text-align:center;
   min-height:30px;
-  margin-top:20px;
+  padding-top:10px;
+  font-weight:bold;
+}
+.next{
+  width:100%;
+  border:0;
+  border-radius:10px;
+  padding:12px;
+  background:#eee;
+  color:#111;
+  font-weight:bold;
+  font-size:16px;
+  margin-top:5px;
+}
+/* STATS */
+.stats{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:10px;
+}
+.stat{
+  background:#282828;
+  border-radius:14px;
+  padding:14px;
+  text-align:center;
+  color:#aaa;
+}
+.stat b{
+  display:block;
+  color:#fff;
+  font-size:20px;
+  margin-top:3px;
+}
+/* HIDE */
+.hide{
+  display:none;
 }
 </style>
 </head>
 <body>
 <main>
 <h1>VALUE TRAINER</h1>
-<p>
-Welche Farbe ist dunkler?
-</p>
+<div class="sub">
+Train your eye to see light and dark.
+</div>
+<!-- SCORE -->
+<div class="bar">
+<b>
+Score:
+<span id="score">0</span>
+</b>
+<span>
+Streak:
+<span id="streak">0</span>
+</span>
+<span>
+Round:
+<span id="round">1</span>
+</span>
+</div>
+<!-- TABS -->
+<div class="tabs">
+
+<button
+id=“tabCompare”
+class=“active”
+
+Compare
+<button
+id=“tabGuess”
+
+Guess Value
+<button
+id=“tabMatch”
+
+Match Value
+</div>
+<div class="card">
+<!-- =========================================
+     COMPARE
+========================================= -->
+<section id="compare">
+<div class="q">
+Which color is DARKER?
+</div>
 <div class="pair">
-<button id="left">
-  <div class="color" id="colorA"></div>
-  A
+
+<button
+class=“swatch”
+id=“compareA”
+
 </button>
-<button id="right">
-  <div class="color" id="colorB"></div>
-  B
+
+<button
+class=“swatch”
+id=“compareB”
+
 </button>
 </div>
-<div id="result"></div>
-<button id="new">
-Neue Runde
-</button>
+</section>
+<!-- =========================================
+     GUESS VALUE
+========================================= -->
+<section
+  id="guess"
+  class="hide"
+>
+<div class="q">
+
+What is the Value?
+
+<br>
+
+1 = black · 9 = white
+
+</span>
+</div>
+<div
+  class="color"
+  id="guessColor"
+></div>
+<div
+  class="answers"
+  id="answers"
+></div>
+</section>
+<!-- =========================================
+     MATCH VALUE
+========================================= -->
+<section
+  id="match"
+  class="hide"
+>
+<div class="q">
+
+Match the Value
+
+</div>
+<div class="target-title">
+TARGET VALUE:
+<span id="targetValue">
+5.0
+</span>
+</div>
+<div
+  class="color"
+  id="targetColor"
+></div>
+<div class="your-title">
+YOUR VALUE
+</div>
+<div
+  class="color"
+  id="yourColor"
+></div>
+<div class="big">
+<span id="sliderValue">
+5.0
+</span>
+</div>
+
+<input
+id=“slider”
+type=“range”
+min=“1”
+max=“9”
+step=“0.1”
+value=“5”
+
+<div class="step-control">
+
+Step:
+
+<select id="stepSize">
+<option value="0.1">
+0.1
+</option>
+<option value="0.5">
+0.5
+</option>
+<option value="1">
+1.0
+</option>
+</select>
+</div>
+
+<button
+class=“check”
+id=“check”
+
+CHECK
+</section>
+<!-- FEEDBACK -->
+<div
+  class="feedback"
+  id="feedback"
+>
+</div>
+
+<button
+class=“next hide”
+id=“next”
+
+NEXT ROUND
+</div>
+<!-- STATS -->
+<div class="stats">
+<div class="stat">
+
+Accuracy
+
+<b id="accuracy">
+—
+</b>
+</div>
+<div class="stat">
+
+Average error
+
+<b id="error">
+—
+</b>
+</div>
+</div>
 </main>
 <script>
-let darker;
-function newRound(){
-  /*
-    Zwei deutlich unterschiedliche
-    Helligkeiten.
-  */
-  const valueA =
-    Math.random() < 0.5 ? 3 : 7;
-  const valueB =
-    valueA === 3 ? 7 : 3;
-  darker =
-    valueA < valueB
-    ? "A"
-    : "B";
-  /*
-    Unterschiedliche Farbtöne,
-    aber eindeutig unterschiedliche Values.
-  */
-  const hueA =
-    Math.floor(Math.random()*360);
-  const hueB =
-    Math.floor(Math.random()*360);
-  const colorA =
-    "hsl("+
-    hueA+
-    ", 70%, "+
-    (valueA/9*90)+
-    "%)";
-  const colorB =
-    "hsl("+
-    hueB+
-    ", 70%, "+
-    (valueB/9*90)+
-    "%)";
-  document.getElementById("colorA")
-    .style.backgroundColor =
-    colorA;
-  document.getElementById("colorB")
-    .style.backgroundColor =
-    colorB;
-  document.getElementById("result")
-    .textContent = "";
+/* =================================================
+   GAME VARIABLES
+================================================= */
+let mode = "compare";
+let score = 0;
+let streak = 0;
+let round = 1;
+let attempts = 0;
+let correct = 0;
+let errorSum = 0;
+let answered = false;
+/* =================================================
+   HELPERS
+================================================= */
+function get(id){
+  return document.getElementById(id);
 }
-document.getElementById("left")
-  .onclick = function(){
-    document.getElementById("result")
+function random(min,max){
+  return min +
+    Math.random() *
+    (max-min);
+}
+/* =================================================
+   COLOR
+================================================= */
+/*
+   Value 1 = black
+   Value 9 = white
+   Hue and saturation are independent.
+*/
+function makeColor(
+  value,
+  hue,
+  saturation
+){
+  /*
+     Value -> Lightness
+     1 = 5%
+     9 = 95%
+  */
+  const lightness =
+    5 +
+    ((value-1)/8)*90;
+  return (
+    "hsl(" +
+    hue +
+    ", " +
+    saturation +
+    "%, " +
+    lightness +
+    "%)"
+  );
+}
+/* =================================================
+   FINISH ROUND
+================================================= */
+function finish(
+  isCorrect,
+  message,
+  error
+){
+  if(answered){
+    return;
+  }
+  answered = true;
+  attempts++;
+  if(isCorrect){
+    correct++;
+    streak++;
+    score +=
+      10 + streak;
+  }else{
+    streak = 0;
+    score =
+      Math.max(
+        0,
+        score-2
+      );
+  }
+  errorSum +=
+    error || 0;
+  get("score").textContent =
+    score;
+  get("streak").textContent =
+    streak;
+  get("accuracy").textContent =
+    Math.round(
+      correct/attempts*100
+    ) + "%";
+  get("error").textContent =
+    (
+      errorSum/attempts
+    ).toFixed(2);
+  get("feedback").textContent =
+    message;
+  get("next")
+    .classList
+    .remove("hide");
+}
+/* =================================================
+   NEW ROUND
+================================================= */
+function newRound(){
+  answered = false;
+  get("feedback")
+    .textContent = "";
+  get("next")
+    .classList
+    .add("hide");
+  get("round")
+    .textContent =
+    round;
+  /* ===============================================
+     COMPARE
+  =============================================== */
+  if(mode === "compare"){
+    const base =
+      random(2,8);
+    const difference =
+      Math.max(
+        0.15,
+        0.9 -
+        round*0.015
+      );
+    const dark =
+      base;
+    const light =
+      Math.min(
+        8.8,
+        base+difference
+      );
+    const aIsDark =
+      Math.random() < 0.5;
+    const valueA =
+      aIsDark
+      ? dark
+      : light;
+    const valueB =
+      aIsDark
+      ? light
+      : dark;
+    /*
+       IMPORTANT:
+       Completely different colors.
+       Only their VALUE determines
+       which one is darker.
+    */
+    const hueA =
+      Math.floor(
+        random(0,360)
+      );
+    const hueB =
+      Math.floor(
+        random(0,360)
+      );
+    const saturationA =
+      Math.floor(
+        random(40,85)
+      );
+    const saturationB =
+      Math.floor(
+        random(40,85)
+      );
+    get("compareA")
+      .style
+      .backgroundColor =
+      makeColor(
+        valueA,
+        hueA,
+        saturationA
+      );
+    get("compareB")
+      .style
+      .backgroundColor =
+      makeColor(
+        valueB,
+        hueB,
+        saturationB
+      );
+    /*
+       Clicking A
+    */
+    get("compareA")
+      .onclick = function(){
+        const right =
+          valueA < valueB;
+        finish(
+          right,
+          right
+          ? "Correct!"
+          : "Incorrect!",
+          0
+        );
+      };
+    /*
+       Clicking B
+    */
+    get("compareB")
+      .onclick = function(){
+        const right =
+          valueB < valueA;
+        finish(
+          right,
+          right
+          ? "Correct!"
+          : "Incorrect!",
+          0
+        );
+      };
+  }
+  /* ===============================================
+     GUESS VALUE
+  =============================================== */
+  if(mode === "guess"){
+    /*
+       Values in 0.5 steps.
+    */
+    const value =
+      Math.round(
+        random(1,9)*2
+      )/2;
+    const hue =
+      Math.floor(
+        random(0,360)
+      );
+    const saturation =
+      Math.floor(
+        random(40,85)
+      );
+    get("guessColor")
+      .style
+      .backgroundColor =
+      makeColor(
+        value,
+        hue,
+        saturation
+      );
+    /*
+       Generate six answers.
+    */
+    const choices =
+      new Set();
+    choices.add(value);
+    while(
+      choices.size < 6
+    ){
+      const choice =
+        Math.round(
+          random(
+            Math.max(
+              1,
+              value-2
+            ),
+            Math.min(
+              9,
+              value+2
+            )
+          )*2
+        )/2;
+      choices.add(choice);
+    }
+    const shuffled =
+      Array.from(choices);
+    shuffled.sort(
+      function(){
+        return Math.random()-0.5;
+      }
+    );
+    get("answers")
+      .innerHTML = "";
+    shuffled.forEach(
+      function(v){
+        const button =
+          document.createElement(
+            "button"
+          );
+        button.textContent =
+          v.toFixed(1);
+        button.onclick =
+          function(){
+            const error =
+              Math.abs(
+                v-value
+              );
+            const right =
+              error < 0.26;
+            finish(
+              right,
+              right
+              ? "Correct!"
+              : "Incorrect — target was " +
+                value.toFixed(1),
+              error
+            );
+          };
+        get("answers")
+          .appendChild(button);
+      }
+    );
+  }
+  /* ===============================================
+     MATCH VALUE
+  =============================================== */
+  if(mode === "match"){
+    const step =
+      Number(
+        get("stepSize").value
+      );
+    let target;
+    /*
+       Generate target according
+       to selected step size.
+    */
+    if(step === 0.1){
+      target =
+        Math.round(
+          random(1.5,8.5)*10
+        )/10;
+    }else if(step === 0.5){
+      target =
+        Math.round(
+          random(1.5,8.5)*2
+        )/2;
+    }else{
+      target =
+        Math.round(
+          random(2,8)
+        );
+    }
+    /*
+       Save target.
+    */
+    get("targetValue")
       .textContent =
-      darker === "A"
-      ? "CORRECT!"
-      : "INCORRECT!";
-  };
-document.getElementById("right")
-  .onclick = function(){
-    document.getElementById("result")
+      target.toFixed(1);
+    /*
+       Generate ONE hue and ONE saturation.
+       These are used for BOTH colors.
+       They will NEVER change when
+       the slider is moved.
+    */
+    const matchHue =
+      Math.floor(
+        random(0,360)
+      );
+    const matchSaturation =
+      Math.floor(
+        random(40,80)
+      );
+    /*
+       Store them on the color element.
+    */
+    get("yourColor")
+      .dataset
+      .hue =
+      matchHue;
+    get("yourColor")
+      .dataset
+      .saturation =
+      matchSaturation;
+    /*
+       TARGET COLOR
+    */
+    get("targetColor")
+      .style
+      .backgroundColor =
+      makeColor(
+        target,
+        matchHue,
+        matchSaturation
+      );
+    /*
+       Slider setup.
+    */
+    get("slider")
+      .step =
+      step;
+    get("slider")
+      .value =
+      5;
+    get("sliderValue")
       .textContent =
-      darker === "B"
-      ? "CORRECT!"
-      : "INCORRECT!";
+      "5.0";
+    /*
+       YOUR COLOR starts at Value 5.
+    */
+    get("yourColor")
+      .style
+      .backgroundColor =
+      makeColor(
+        5,
+        matchHue,
+        matchSaturation
+      );
+  }
+}
+/* =================================================
+   COMPARE TAB
+================================================= */
+get("tabCompare")
+  .onclick = function(){
+    mode = "compare";
+    get("tabCompare")
+      .classList
+      .add("active");
+    get("tabGuess")
+      .classList
+      .remove("active");
+    get("tabMatch")
+      .classList
+      .remove("active");
+    get("compare")
+      .classList
+      .remove("hide");
+    get("guess")
+      .classList
+      .add("hide");
+    get("match")
+      .classList
+      .add("hide");
+    newRound();
   };
-document.getElementById("new")
-  .onclick = newRound;
+/* =================================================
+   GUESS TAB
+================================================= */
+get("tabGuess")
+  .onclick = function(){
+    mode = "guess";
+    get("tabCompare")
+      .classList
+      .remove("active");
+    get("tabGuess")
+      .classList
+      .add("active");
+    get("tabMatch")
+      .classList
+      .remove("active");
+    get("compare")
+      .classList
+      .add("hide");
+    get("guess")
+      .classList
+      .remove("hide");
+    get("match")
+      .classList
+      .add("hide");
+    newRound();
+  };
+/* =================================================
+   MATCH TAB
+================================================= */
+get("tabMatch")
+  .onclick = function(){
+    mode = "match";
+    get("tabCompare")
+      .classList
+      .remove("active");
+    get("tabGuess")
+      .classList
+      .remove("active");
+    get("tabMatch")
+      .classList
+      .add("active");
+    get("compare")
+      .classList
+      .add("hide");
+    get("guess")
+      .classList
+      .add("hide");
+    get("match")
+      .classList
+      .remove("hide");
+    newRound();
+  };
+/* =================================================
+   SLIDER
+================================================= */
+get("slider")
+  .oninput = function(){
+    /*
+       Get current slider Value.
+    */
+    const value =
+      Number(
+        this.value
+      );
+    /*
+       Update displayed Value.
+    */
+    get("sliderValue")
+      .textContent =
+      value.toFixed(1);
+    /*
+       Get the ORIGINAL Hue and
+       Saturation from this round.
+       They do NOT change.
+    */
+    const hue =
+      Number(
+        get("yourColor")
+          .dataset
+          .hue
+      );
+    const saturation =
+      Number(
+        get("yourColor")
+          .dataset
+          .saturation
+      );
+    /*
+       ONLY VALUE changes here.
+    */
+    get("yourColor")
+      .style
+      .backgroundColor =
+      makeColor(
+        value,
+        hue,
+        saturation
+      );
+  };
+/* =================================================
+   STEP SIZE
+================================================= */
+get("stepSize")
+  .onchange = function(){
+    /*
+       Start a new Match round
+       with the new step size.
+    */
+    if(mode === "match"){
+      newRound();
+    }
+  };
+/* =================================================
+   CHECK MATCH
+================================================= */
+get("check")
+  .onclick = function(){
+    const target =
+      Number(
+        get("targetValue")
+          .textContent
+      );
+    const guess =
+      Number(
+        get("slider")
+          .value
+      );
+    const error =
+      Math.abs(
+        target-guess
+      );
+    /*
+       Maximum allowed error:
+       0.2
+    */
+    const right =
+      error <= 0.2;
+    finish(
+      right,
+      right
+      ? "Correct!"
+      : "Incorrect — Target " +
+        target.toFixed(1) +
+        " · Error " +
+        error.toFixed(1),
+      error
+    );
+  };
+/* =================================================
+   NEXT ROUND
+================================================= */
+get("next")
+  .onclick = function(){
+    round++;
+    newRound();
+  };
+/* =================================================
+   START
+================================================= */
 newRound();
 </script>
 </body>
