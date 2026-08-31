@@ -19,7 +19,7 @@ button{font:inherit;border:0;border-radius:10px;padding:12px;background:#383838;
 .swatch:active{border-color:white}
 .color{height:200px;border-radius:12px;margin-bottom:12px}
 .answers{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.answers button{font-size:18px}
+.answers button{font-size:18px}i
 input{width:100%;accent-color:white}
 .big{text-align:center;font-size:28px;font-weight:bold;margin:8px}
 .next{width:100%;font-weight:bold;margin-top:10px}
@@ -124,8 +124,18 @@ function newRound(){
     const vb=aHigh?low:high;
     $("a").style.background=makeColor(va);
     $("b").style.background=makeColor(vb);
-    $("a").onclick=()=>finish(va<vb,"Correct!",0);
-    $("b").onclick=()=>finish(vb<va,"Correct!",0);
+    
+    $("a").onclick=()=>finish(
+  va<vb,
+  va<vb?"Correct!":"Incorrect! The right answer was "+(va<vb?"A":"B"),
+  0
+);
+
+$("b").onclick=()=>finish(
+  vb<va,
+  vb<va?"Correct!":"Incorrect! The right answer was "+(vb<va?"B":"A"),
+  0
+);
   }
 
   if(mode==="guess"){
