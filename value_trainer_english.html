@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Value Trainer</title>
+<style>
+body{margin:0;background:#181818;color:#eee;font-family:Arial,sans-serif}
+main{max-width:600px;margin:auto;padding:18px 14px}
+h1{text-align:center;margin:5px 0}.sub{text-align:center;color:#aaa;margin-bottom:15px}
+.bar,.card,.stat{background:#282828;border-radius:14px;padding:14px}
+.bar{display:flex;justify-content:space-between;font-size:14px;margin-bottom:10px}
+.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px}
+button{font:inherit;border:0;border-radius:10px;padding:12px;background:#383838;color:#eee}
+.tabs .active,.next{background:#eee;color:#111}
+.q{text-align:center;font-weight:bold;margin:5px 0 15px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.swatch{height:220px;border:3px solid transparent}
+.swatch:active{border-color:white}
+.color{height:200px;border-radius:12px;margin-bottom:12px}
+.answers{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.answers button{font-size:18px}
+input{width:100%;accent-color:white}
+.big{text-align:center;font-size:28px;font-weight:bold;margin:8px}
+.next{width:100%;font-weight:bold;margin-top:10px}
+.feedback{text-align:center;height:28px;padding-top:10px;font-weight:bold}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.stat{text-align:center;color:#aaa}.stat b{display:block;color:#fff;font-size:20px}
+.hide{display:none}
+</style>
+</head>
+<body>
+<main>
+<h1>VALUE TRAINER</h1>
+<div class="sub">Train your eye to see light and dark.</div>
+<div class="bar"><b>Score: <span id="score">0</span></b><span>Streak: <span id="streak">0</span></span><span>Round: <span id="round">1</span></span></div>
+
+<div class="tabs">
+<button class="active" data-mode="compare">Compare</button>
+<button data-mode="guess">Guess Value</button>
+<button data-mode="match">Match Value</button>
+</div>
+
+<div class="card">
+<section id="compare">
+<div class="q">Which color is DARKER?</div>
+<div class="pair">
+<button class="swatch" id="a"></button>
+<button class="swatch" id="b"></button>
+</div>
+</section>
+
+<section id="guess" class="hide">
+<div class="q">What is the Value? 1 = black, 9 = white</div>
+<div class="color" id="gc"></div>
+<div class="answers" id="answers"></div>
+</section>
+
+<section id="match" class="hide">
+<div class="q">Target Value: <span id="target">5.0</span><br>Set the slider to match it.</div>
+<div class="color" id="mc"></div>
+<div class="big" id="sliderValue">5.0</div>
+<input id="slider" type="range" min="1" max="9" step="0.1" value="5">
+<button class="next" id="check">CHECK</button>
+</section>
+
+<div class="feedback" id="feedback"></div>
+<button class="next hide" id="next">NEXT ROUND</button>
+</div>
+
+<div class="stats">
+<div class="stat">Accuracy<b id="accuracy">—</b></div>
+<div class="stat">Average error<b id="error">—</b></div>
+</div>
+</main>
+
+<script>
+let mode="compare",score=0,streak=0,round=1,attempts=0,correct=0,errorSum=0,answered=false;
+
+const $=id=>document.getElementById(id);
+const random=(a,b)=>a+Math.random()*(b-a);
+
+function makeColor(value){
+  const lightness=0.06+(value-1)/8*0.88;
+  const hue=random(0,360);
+  const chroma=random(0.025,0.16);
+  return "oklch("+lightness+" "+chroma+" "+hue+")";
+}
+
+function finish(correctAnswer,message,error){
+  if(answered)return;
+  answered=true;
+  attempts++;
+  if(correctAnswer){
+    correct++;
+    streak++;
+    score+=10+streak;
+  }else{
+    streak=0;
+    score=Math.max(0,score-2);
+  }
+  errorSum+=error||0;
+  $("score").textContent=score;
+  $("streak").textContent=streak;
+  $("accuracy").textContent=Math.round(correct/attempts*100)+"%";
+  $("error").textContent=(errorSum/attempts).toFixed(2);
+  $("feedback").textContent=message;
+  $("next").classList.remove("hide");
+}
+
+function newRound(){
+  answered=false;
+  $("feedback").textContent="";
+  $("next").classList.add("hide");
+  $("round").textContent=round;
+
+  if(mode==="compare"){
+    const base=random(2,8);
+    const difference=Math.max(0.12,0.8-round*0.015);
+    const high=Math.min(8.8,base+difference);
+    const low=Math.max(1.2,base);
+    const aHigh=Math.random()<0.5;
+    const va=aHigh?high:low;
+    const vb=aHigh?low:high;
+    $("a").style.background=makeColor(va);
+    $("b").style.background=makeColor(vb);
+    $("a").onclick=()=>finish(va<vb,"Correct!",0);
+    $("b").onclick=()=>finish(vb<va,"Correct!",0);
+  }
+
+  if(mode==="guess"){
+    const value=Math.round(random(1.5,8.5)*2)/2;
+    $("gc").style.background=makeColor(value);
+    const choices=new Set([value]);
+    while(choices.size<6){
+      choices.add(Math.max(1,Math.min(9,Math.round(random(value-2,value+2)*2)/2)));
+    }
+    $("answers").innerHTML=[...choices].sort(()=>Math.random()-0.5)
+      .map(v=>'<button data-value="'+v+'">'+v+'</button>').join("");
+    document.querySelectorAll("#answers button").forEach(button=>{
+      button.onclick=()=>{
+        const error=Math.abs(Number(button.dataset.value)-value);
+        finish(error<0.26,error<0.26?"Correct!":"Target was "+value.toFixed(1),error);
+      };
+    });
+  }
+
+  if(mode==="match"){
+    const value=Math.round(random(1.5,8.5)*10)/10;
+    $("target").textContent=value.toFixed(1);
+    $("mc").style.background=makeColor(value);
+    $("slider").value=5;
+    $("sliderValue").textContent="5.0";
+  }
+}
+
+document.querySelectorAll(".tabs button").forEach(button=>{
+  button.onclick=()=>{
+    mode=button.dataset.mode;
+    document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
+    button.classList.add("active");
+    ["compare","guess","match"].forEach(id=>$(id).classList.add("hide"));
+    $(mode).classList.remove("hide");
+    newRound();
+  };
+});
+
+$("slider").oninput=e=>{
+  $("sliderValue").textContent=Number(e.target.value).toFixed(1);
+};
+
+$("check").onclick=()=>{
+  const target=Number($("target").textContent);
+  const guess=Number($("slider").value);
+  const error=Math.abs(target-guess);
+  finish(error<=0.2,"Target "+target.toFixed(1)+" · Error "+error.toFixed(1),error);
+};
+
+$("next").onclick=()=>{
+  round++;
+  newRound();
+};
+
+newRound();
+</script>
+</body>
+</html>
