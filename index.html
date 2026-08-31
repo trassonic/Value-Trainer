@@ -9,38 +9,38 @@ body{
   margin:0;
   background:#181818;
   color:#eee;
-  font-family:Arial,sans-serif
+  font-family:Arial,sans-serif;
 }
 main{
   max-width:600px;
   margin:auto;
-  padding:18px 14px
+  padding:18px 14px;
 }
 h1{
   text-align:center;
-  margin:5px 0
+  margin:5px 0;
 }
 .sub{
   text-align:center;
   color:#aaa;
-  margin-bottom:15px
+  margin-bottom:15px;
 }
 .bar,.card,.stat{
   background:#282828;
   border-radius:14px;
-  padding:14px
+  padding:14px;
 }
 .bar{
   display:flex;
   justify-content:space-between;
   font-size:14px;
-  margin-bottom:10px
+  margin-bottom:10px;
 }
 .tabs{
   display:grid;
   grid-template-columns:1fr 1fr 1fr;
   gap:6px;
-  margin-bottom:10px
+  margin-bottom:10px;
 }
 button{
   font:inherit;
@@ -48,93 +48,99 @@ button{
   border-radius:10px;
   padding:12px;
   background:#383838;
-  color:#eee
+  color:#eee;
+  cursor:pointer;
 }
-.tabs .active,.next{
+button:active{
+  transform:scale(.98);
+}
+.tabs .active,
+.next{
   background:#eee;
-  color:#111
+  color:#111;
 }
 .q{
   text-align:center;
   font-weight:bold;
-  margin:5px 0 15px
+  margin:5px 0 15px;
 }
 .pair{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:12px
+  gap:12px;
 }
 .swatch{
   height:220px;
-  border:3px solid transparent
+  border:3px solid transparent;
+  padding:0;
 }
 .swatch:active{
-  border-color:white
+  border-color:white;
 }
 .color{
   height:200px;
   border-radius:12px;
-  margin-bottom:12px
+  margin-bottom:12px;
 }
 .answers{
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:8px
+  gap:8px;
 }
 .answers button{
-  font-size:18px
+  font-size:18px;
 }
 input{
   width:100%;
-  accent-color:white
+  accent-color:white;
 }
 .big{
   text-align:center;
   font-size:28px;
   font-weight:bold;
-  margin:8px
+  margin:8px;
 }
 .next{
   width:100%;
   font-weight:bold;
-  margin-top:10px
+  margin-top:10px;
 }
 .feedback{
   text-align:center;
-  height:28px;
+  min-height:28px;
   padding-top:10px;
-  font-weight:bold
+  font-weight:bold;
 }
 .stats{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:8px;
-  margin-top:10px
+  margin-top:10px;
 }
 .stat{
   text-align:center;
-  color:#aaa
+  color:#aaa;
 }
 .stat b{
   display:block;
   color:#fff;
-  font-size:20px
+  font-size:20px;
 }
 .hide{
-  display:none
+  display:none;
 }
 .step-control{
   text-align:center;
-  margin-top:10px;
-  color:#aaa
+  margin-top:12px;
+  color:#aaa;
 }
 .step-control select{
   background:#383838;
   color:#eee;
   border:0;
   border-radius:8px;
-  padding:7px;
-  margin-left:5px
+  padding:7px 10px;
+  margin-left:5px;
 }
 </style>
 </head>
@@ -180,14 +186,10 @@ What is the Value? 1 = black, 9 = white
 <!-- MATCH VALUE -->
 <section id="match" class="hide">
 <div class="q">
-
 Target Value:
-5.0
-
+<span id="target">5.0</span>
 <br>
-
 Set the slider to match it.
-
 </div>
 <div class="color" id="mc"></div>
 <div class="big" id="sliderValue">
@@ -207,15 +209,9 @@ value=“5”
 Step:
 
 <select id="stepSize">
-<option value="0.1">
-0.1
-</option>
-<option value="0.5">
-0.5
-</option>
-<option value="1">
-1.0
-</option>
+<option value="0.1">0.1</option>
+<option value="0.5">0.5</option>
+<option value="1">1.0</option>
 </select>
 </div>
 <button class="next" id="check">
@@ -239,368 +235,455 @@ Average error
 </div>
 </main>
 <script>
-let mode="compare";
-let score=0;
-let streak=0;
-let round=1;
-let attempts=0;
-let correct=0;
-let errorSum=0;
-let answered=false;
-const $=id=>document.getElementById(id);
-const random=(a,b)=>
-  a+Math.random()*(b-a);
-/* =========================
-   COLOR GENERATION
-========================= */
-function makeColor(value,hue=null,chroma=null){
-  const lightness=
-    0.06+
-    (value-1)/8*
-    0.88;
-  if(hue===null)
-    hue=random(0,360);
-  if(chroma===null)
-    chroma=random(0.025,0.16);
-  return "oklch("+
-    lightness+
-    " "+
-    chroma+
-    " "+
-    hue+
-    ")";
+let mode = "compare";
+let score = 0;
+let streak = 0;
+let round = 1;
+let attempts = 0;
+let correct = 0;
+let errorSum = 0;
+let answered = false;
+/* Easy ID shortcut */
+function $(id){
+  return document.getElementById(id);
 }
-/* =========================
+/* Random number */
+function random(min,max){
+  return min + Math.random() * (max-min);
+}
+/* ==================================================
+   COLOR
+================================================== */
+/*
+   Value 1 = very dark
+   Value 9 = very light
+   Hue and chroma are kept separate from Value.
+*/
+function makeColor(value,hue,chroma){
+  const lightness =
+    0.06 + ((value-1)/8)*0.88;
+  /*
+     Use CSS OKLCH.
+     The fallback makes sure there is still
+     a visible color if OKLCH is unsupported.
+  */
+  const oklch =
+    "oklch(" +
+    lightness + " " +
+    chroma + " " +
+    hue +
+    ")";
+  const fallback =
+    "hsl(" +
+    hue + " " +
+    Math.round(chroma*500) + "% " +
+    Math.round(lightness*100) +
+    "%)";
+  return {
+    oklch:oklch,
+    fallback:fallback
+  };
+}
+/* Apply color safely */
+function setColor(element,value,hue,chroma){
+  const color =
+    makeColor(
+      value,
+      hue,
+      chroma
+    );
+  element.style.backgroundColor =
+    color.fallback;
+  /*
+     Modern browsers including current
+     Safari will use OKLCH.
+  */
+  if(
+    window.CSS &&
+    CSS.supports &&
+    CSS.supports(
+      "color",
+      color.oklch
+    )
+  ){
+    element.style.backgroundColor =
+      color.oklch;
+  }
+}
+/* ==================================================
    MATCH COLOR
-========================= */
-let matchHue=0;
-let matchChroma=0.1;
-function matchColor(value){
-  return makeColor(
+================================================== */
+let matchHue = 0;
+let matchChroma = 0.08;
+function setMatchColor(value){
+  setColor(
+    $("mc"),
     value,
     matchHue,
     matchChroma
   );
 }
-/* =========================
-   FINISH ROUND
-========================= */
+/* ==================================================
+   FINISH
+================================================== */
 function finish(
-  correctAnswer,
+  isCorrect,
   message,
   error
 ){
-  if(answered)
+  if(answered){
     return;
-  answered=true;
+  }
+  answered = true;
   attempts++;
-  if(correctAnswer){
+  if(isCorrect){
     correct++;
     streak++;
-    score+=10+streak;
+    score += 10 + streak;
   }else{
-    streak=0;
-    score=Math.max(
-      0,
-      score-2
-    );
+    streak = 0;
+    score =
+      Math.max(
+        0,
+        score-2
+      );
   }
-  errorSum+=error||0;
-  $("score").textContent=score;
-  $("streak").textContent=streak;
-  $("accuracy").textContent=
+  errorSum += error || 0;
+  $("score").textContent =
+    score;
+  $("streak").textContent =
+    streak;
+  $("accuracy").textContent =
     Math.round(
       correct/attempts*100
-    )+"%";
-  $("error").textContent=
+    ) + "%";
+  $("error").textContent =
     (errorSum/attempts)
     .toFixed(2);
-  $("feedback").textContent=
+  $("feedback").textContent =
     message;
   $("next")
     .classList
     .remove("hide");
 }
-/* =========================
+/* ==================================================
    NEW ROUND
-========================= */
+================================================== */
 function newRound(){
-  answered=false;
-  $("feedback").textContent="";
+  answered = false;
+  $("feedback").textContent = "";
   $("next")
     .classList
     .add("hide");
-  $("round").textContent=
+  $("round").textContent =
     round;
-  /* =====================
+  /* =================================================
      COMPARE
-  ===================== */
-  if(mode==="compare"){
-    const base=
+  ================================================= */
+  if(mode === "compare"){
+    const base =
       random(2,8);
-    const difference=
+    const difference =
       Math.max(
         0.12,
-        0.8-round*0.015
+        0.8 - round*0.015
       );
-    const high=
+    const high =
       Math.min(
         8.8,
         base+difference
       );
-    const low=
+    const low =
       Math.max(
         1.2,
         base
       );
-    const aHigh=
-      Math.random()<0.5;
-    const va=
-      aHigh
-      ?high
-      :low;
-    const vb=
-      aHigh
-      ?low
-      :high;
-    $("a").style.background=
-      makeColor(va);
-    $("b").style.background=
-      makeColor(vb);
-    $("a").onclick=()=>{
-      const right=
-        va<vb;
+    const aHigh =
+      Math.random() < 0.5;
+    const valueA =
+      aHigh ? high : low;
+    const valueB =
+      aHigh ? low : high;
+    /* Completely different colors */
+    const hueA =
+      random(0,360);
+    const hueB =
+      random(0,360);
+    const chromaA =
+      random(0.025,0.16);
+    const chromaB =
+      random(0.025,0.16);
+    setColor(
+      $("a"),
+      valueA,
+      hueA,
+      chromaA
+    );
+    setColor(
+      $("b"),
+      valueB,
+      hueB,
+      chromaB
+    );
+    $("a").onclick = function(){
+      const right =
+        valueA < valueB;
       finish(
         right,
         right
-        ?"Correct!"
-        :"Incorrect!",
+          ? "Correct!"
+          : "Incorrect!",
         0
       );
     };
-    $("b").onclick=()=>{
-      const right=
-        vb<va;
+    $("b").onclick = function(){
+      const right =
+        valueB < valueA;
       finish(
         right,
         right
-        ?"Correct!"
-        :"Incorrect!",
+          ? "Correct!"
+          : "Incorrect!",
         0
       );
     };
   }
-  /* =====================
+  /* =================================================
      GUESS VALUE
-  ===================== */
-  if(mode==="guess"){
-    const value=
+  ================================================= */
+  if(mode === "guess"){
+    const value =
       Math.round(
         random(1.5,8.5)*2
       )/2;
-    $("gc").style.background=
-      makeColor(value);
-    const choices=
-      new Set([value]);
-    while(choices.size<6){
-      choices.add(
-        Math.max(
-          1,
-          Math.min(
-            9,
-            Math.round(
-              random(
-                value-2,
-                value+2
-              )*2
-            )/2
-          )
-        )
-      );
+    const hue =
+      random(0,360);
+    const chroma =
+      random(0.025,0.16);
+    setColor(
+      $("gc"),
+      value,
+      hue,
+      chroma
+    );
+    const choices =
+      new Set();
+    choices.add(value);
+    while(
+      choices.size < 6
+    ){
+      const choice =
+        Math.round(
+          random(
+            Math.max(1,value-2),
+            Math.min(9,value+2)
+          )*2
+        )/2;
+      choices.add(choice);
     }
-    $("answers").innerHTML=
+    const shuffled =
       [...choices]
       .sort(
-        ()=>Math.random()-0.5
-      )
-      .map(
-        v=>
-        '<button data-value="'+
-        v+
-        '">'+
-        v+
-        '</button>'
-      )
-      .join("");
-    document
-      .querySelectorAll(
-        "#answers button"
-      )
-      .forEach(button=>{
-        button.onclick=()=>{
-          const error=
-            Math.abs(
-              Number(
-                button.dataset.value
-              )-value
-            );
-          const right=
-            error<0.26;
-          finish(
-            right,
-            right
-            ?"Correct!"
-            :"Target was "+
-              value.toFixed(1),
-            error
+        function(){
+          return Math.random()-0.5;
+        }
+      );
+    $("answers").innerHTML =
+      "";
+    shuffled.forEach(
+      function(v){
+        const button =
+          document.createElement(
+            "button"
           );
-        };
-      });
+        button.textContent =
+          v.toFixed(1);
+        button.onclick =
+          function(){
+            const error =
+              Math.abs(
+                v-value
+              );
+            const right =
+              error < 0.26;
+            finish(
+              right,
+              right
+                ? "Correct!"
+                : "Incorrect — target was " +
+                  value.toFixed(1),
+              error
+            );
+          };
+        $("answers")
+          .appendChild(button);
+      }
+    );
   }
-  /* =====================
+  /* =================================================
      MATCH VALUE
-  ===================== */
-  if(mode==="match"){
-    const step=
+  ================================================= */
+  if(mode === "match"){
+    const step =
       Number(
         $("stepSize").value
       );
-    let min=
-      1+step;
-    let max=
-      9-step;
-    let value=
-      Math.round(
-        random(min,max)/step
-      )*step;
-    value=
-      Math.max(
-        1,
-        Math.min(
-          9,
-          value
-        )
-      );
-    $("target").textContent=
-      value.toFixed(1);
-    /* Same hue + chroma
-       throughout the round */
-    matchHue=
+    /*
+       Generate target according to
+       selected step size.
+    */
+    let target;
+    if(step === 0.1){
+      target =
+        Math.round(
+          random(1.5,8.5)*10
+        )/10;
+    }else if(step === 0.5){
+      target =
+        Math.round(
+          random(1.5,8.5)*2
+        )/2;
+    }else{
+      target =
+        Math.round(
+          random(2,8)
+        );
+    }
+    $("target").textContent =
+      target.toFixed(1);
+    /*
+       One hue/chroma for this round.
+       Only Value changes with slider.
+    */
+    matchHue =
       random(0,360);
-    matchChroma=
-      random(0.04,0.14);
-    /* Target starts at
-       the middle of slider */
-    const startValue=5;
-    $("slider").step=
-      step;
-    $("slider").value=
-      startValue;
-    $("sliderValue").textContent=
-      startValue.toFixed(1);
-    $("mc").style.background=
-      matchColor(
-        startValue
-      );
+    matchChroma =
+      random(0.04,0.12);
+    /*
+       Start slider at 5.
+    */
+    $("slider").min = 1;
+    $("slider").max = 9;
+    $("slider").step = step;
+    $("slider").value = 5;
+    $("sliderValue").textContent =
+      "5.0";
+    setMatchColor(5);
   }
 }
-/* =========================
-   TABS
-========================= */
+/* ==================================================
+   TAB BUTTONS
+================================================== */
 document
   .querySelectorAll(
     ".tabs button"
   )
-  .forEach(button=>{
-    button.onclick=()=>{
-      mode=
-        button.dataset.mode;
-      document
-        .querySelectorAll(
-          ".tabs button"
-        )
-        .forEach(
-          b=>
-          b.classList
-            .remove("active")
-        );
-      button.classList
-        .add("active");
-      [
-        "compare",
-        "guess",
-        "match"
-      ]
-      .forEach(
-        id=>
-        $(id)
-          .classList
-          .add("hide")
-      );
-      $(mode)
-        .classList
-        .remove("hide");
-      newRound();
-    };
-  });
-/* =========================
-   SLIDER
-========================= */
-$("slider").oninput=e=>{
-  const value=
-    Number(
-      e.target.value
-    );
-  $("sliderValue").textContent=
-    value.toFixed(1);
-  /* Change brightness/value
-     while keeping hue/chroma */
-  $("mc").style.background=
-    matchColor(value);
-};
-/* =========================
-   STEP SIZE
-========================= */
-$("stepSize").onchange=()=>{
-  newRound();
-};
-/* =========================
-   CHECK MATCH
-========================= */
-$("check").onclick=()=>{
-  const target=
-    Number(
-      $("target").textContent
-    );
-  const guess=
-    Number(
-      $("slider").value
-    );
-  const error=
-    Math.abs(
-      target-guess
-    );
-  finish(
-    error<=0.2,
-    error<=0.2
-    ?"Correct!"
-    :"Target "+
-      target.toFixed(1)+
-      " · Error "+
-      error.toFixed(1),
-    error
+  .forEach(
+    function(button){
+      button.onclick =
+        function(){
+          mode =
+            button.dataset.mode;
+          document
+            .querySelectorAll(
+              ".tabs button"
+            )
+            .forEach(
+              function(b){
+                b.classList
+                  .remove("active");
+              }
+            );
+          button.classList
+            .add("active");
+          [
+            "compare",
+            "guess",
+            "match"
+          ]
+          .forEach(
+            function(id){
+              $(id)
+                .classList
+                .add("hide");
+            }
+          );
+          $(mode)
+            .classList
+            .remove("hide");
+          newRound();
+        };
+    }
   );
-};
-/* =========================
+/* ==================================================
+   SLIDER
+================================================== */
+$("slider").oninput =
+  function(){
+    const value =
+      Number(
+        this.value
+      );
+    $("sliderValue").textContent =
+      value.toFixed(1);
+    /*
+       IMPORTANT:
+       Only Value changes.
+       Hue and Chroma stay the same.
+    */
+    setMatchColor(value);
+  };
+/* ==================================================
+   STEP SIZE
+================================================== */
+$("stepSize").onchange =
+  function(){
+    /*
+       New target with new step size.
+    */
+    newRound();
+  };
+/* ==================================================
+   CHECK
+================================================== */
+$("check").onclick =
+  function(){
+    const target =
+      Number(
+        $("target").textContent
+      );
+    const guess =
+      Number(
+        $("slider").value
+      );
+    const error =
+      Math.abs(
+        target-guess
+      );
+    const right =
+      error <= 0.2;
+    finish(
+      right,
+      right
+        ? "Correct!"
+        : "Target " +
+          target.toFixed(1) +
+          " · Error " +
+          error.toFixed(1),
+      error
+    );
+  };
+/* ==================================================
    NEXT ROUND
-========================= */
-$("next").onclick=()=>{
-  round++;
-  newRound();
-};
-/* =========================
+================================================== */
+$("next").onclick =
+  function(){
+    round++;
+    newRound();
+  };
+/* ==================================================
    START
-========================= */
+================================================== */
 newRound();
 </script>
 </body>
