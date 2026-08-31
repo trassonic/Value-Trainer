@@ -2,12 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Value Trainer</title>
 <style>
-*{
-  box-sizing:border-box;
-}
 body{
   margin:0;
   background:#181818;
@@ -17,26 +14,27 @@ body{
 main{
   max-width:600px;
   margin:auto;
-  padding:18px 14px 30px;
+  padding:18px 14px;
 }
 h1{
   text-align:center;
   margin:5px 0;
-  letter-spacing:1px;
 }
 .sub{
   text-align:center;
   color:#aaa;
   margin-bottom:15px;
 }
-.bar{
+.bar,.card,.stat{
   background:#282828;
   border-radius:14px;
   padding:14px;
+}
+.bar{
   display:flex;
   justify-content:space-between;
-  margin-bottom:10px;
   font-size:14px;
+  margin-bottom:10px;
 }
 .tabs{
   display:grid;
@@ -51,19 +49,11 @@ button{
   padding:12px;
   background:#383838;
   color:#eee;
-  cursor:pointer;
 }
-button:active{
-  transform:scale(.98);
-}
-.tabs button.active{
+.tabs .active,
+.next{
   background:#eee;
   color:#111;
-}
-.card{
-  background:#282828;
-  border-radius:14px;
-  padding:14px;
 }
 .q{
   text-align:center;
@@ -77,7 +67,6 @@ button:active{
 }
 .swatch{
   height:220px;
-  padding:0;
   border:3px solid transparent;
 }
 .swatch:active{
@@ -96,48 +85,26 @@ button:active{
 .answers button{
   font-size:18px;
 }
+input{
+  width:100%;
+  accent-color:white;
+}
 .big{
   text-align:center;
   font-size:28px;
   font-weight:bold;
   margin:8px;
 }
-input[type="range"]{
+.next{
   width:100%;
-  accent-color:white;
-}
-.step-control{
-  text-align:center;
-  margin-top:12px;
-  color:#aaa;
-}
-select{
-  background:#383838;
-  color:#eee;
-  border:0;
-  border-radius:8px;
-  padding:7px 10px;
-  margin-left:5px;
-}
-.check{
-  width:100%;
-  margin-top:12px;
-  background:#eee;
-  color:#111;
   font-weight:bold;
+  margin-top:10px;
 }
 .feedback{
   text-align:center;
-  min-height:30px;
+  height:28px;
   padding-top:10px;
   font-weight:bold;
-}
-.next{
-  width:100%;
-  background:#eee;
-  color:#111;
-  font-weight:bold;
-  margin-top:5px;
 }
 .stats{
   display:grid;
@@ -146,9 +113,6 @@ select{
   margin-top:10px;
 }
 .stat{
-  background:#282828;
-  border-radius:14px;
-  padding:14px;
   text-align:center;
   color:#aaa;
 }
@@ -156,16 +120,21 @@ select{
   display:block;
   color:#fff;
   font-size:20px;
-  margin-top:3px;
 }
 .hide{
   display:none;
 }
-.target-label{
+.step-control{
   text-align:center;
+  margin-top:10px;
   color:#aaa;
-  font-size:13px;
-  margin-bottom:6px;
+}
+.step-control select{
+  background:#383838;
+  color:#eee;
+  border:0;
+  border-radius:8px;
+  padding:7px;
 }
 </style>
 </head>
@@ -187,20 +156,18 @@ Round: <span id="round">1</span>
 </span>
 </div>
 <div class="tabs">
-<button class="active" id="tabCompare">
+<button class="active" data-mode="compare">
 Compare
 </button>
-<button id="tabGuess">
+<button data-mode="guess">
 Guess Value
 </button>
-<button id="tabMatch">
+<button data-mode="match">
 Match Value
 </button>
 </div>
 <div class="card">
-<!-- =========================
-     COMPARE
-========================= -->
+<!-- COMPARE -->
 <section id="compare">
 <div class="q">
 Which color is DARKER?
@@ -208,58 +175,40 @@ Which color is DARKER?
 <div class="pair">
 </div>
 </section>
-<!-- =========================
-     GUESS VALUE
-========================= -->
-<section
-  id="guess"
-  class="hide">
+<!-- GUESS -->
+<section id="guess" class="hide">
 <div class="q">
-What is the Value?
-<br>
-<span style="color:#aaa;font-size:13px">
-1 = black · 9 = white
-</span>
+What is the Value? 1 = black, 9 = white
 </div>
 <div
-  class="color"
-  id="guessColor">
+class="color"
+id="gc">
 </div>
 <div
-  class="answers"
-  id="answers">
+class="answers"
+id="answers">
 </div>
 </section>
-<!-- =========================
-     MATCH VALUE
-========================= -->
-<section
-  id="match"
-  class="hide">
+<!-- MATCH -->
+<section id="match" class="hide">
 <div class="q">
-Match the Value
-</div>
-<div class="target-label">
-TARGET
-</div>
-<div
-  class="color"
-  id="targetColor">
-</div>
-<div style="
-text-align:center;
-font-size:14px;
-color:#aaa;
-margin:10px 0 6px;
-">
-Your Value
+
+Target Value:
+5.0
+
+<br>
+
+Set the slider to match it.
+
 </div>
 <div
-  class="color"
-  id="yourColor">
+class="color"
+id="mc">
 </div>
-<div class="big">
-<span id="sliderValue">5.0</span>
+<div
+class="big"
+id="sliderValue">
+5.0
 </div>
 
 <input
@@ -290,115 +239,126 @@ Step:
 CHECK
 </section>
 <div
-  class="feedback"
-  id="feedback">
+class="feedback"
+id="feedback">
 </div>
 
 NEXT ROUND
 </div>
 <div class="stats">
 <div class="stat">
+
 Accuracy
-<b id="accuracy">—</b>
+
+<b id="accuracy">
+—
+</b>
 </div>
 <div class="stat">
+
 Average error
-<b id="error">—</b>
+
+<b id="error">
+—
+</b>
 </div>
 </div>
 </main>
 <script>
 /* ==================================================
-   GAME VARIABLES
+   GAME
 ================================================== */
-let mode = "compare";
-let score = 0;
-let streak = 0;
-let round = 1;
-let attempts = 0;
-let correct = 0;
-let errorSum = 0;
-let answered = false;
+let mode="compare";
+let score=0;
+let streak=0;
+let round=1;
+let attempts=0;
+let correct=0;
+let errorSum=0;
+let answered=false;
+const $=id =>
+  document.getElementById(id);
+const random=(a,b) =>
+  a+Math.random()*(b-a);
 /* ==================================================
-   HELPERS
+   ORIGINAL COLOR FUNCTION
 ================================================== */
-function get(id){
-  return document.getElementById(id);
-}
-function random(min,max){
-  return min + Math.random() * (max-min);
+function makeColor(value){
+  const lightness=
+    0.06+(value-1)/8*0.88;
+  const hue=
+    random(0,360);
+  const chroma=
+    random(0.025,0.16);
+  return "oklch("+
+    lightness+
+    " "+
+    chroma+
+    " "+
+    hue+
+    ")";
 }
 /* ==================================================
-   COLOR SYSTEM
+   MATCH COLOR
 ================================================== */
 /*
-   Value:
-   1 = very dark
-   9 = very light
-   We use HSL because it is extremely
-   well supported by Safari and iPhone.
-   Hue = color
-   Saturation = intensity
-   Lightness = perceived brightness
+   IMPORTANT:
+   matchHue and matchChroma are created ONCE
+   for each round.
+   The slider only changes VALUE.
 */
-function color(value,hue,saturation){
-  /*
-     Convert Value 1–9
-     into Lightness 5–95%.
-  */
-  let lightness =
-    5 + ((value-1)/8)*90;
-  return (
-    "hsl(" +
-    hue +
-    ", " +
-    saturation +
-    "%, " +
-    lightness +
-    "%)"
-  );
+let matchHue=0;
+let matchChroma=0.1;
+function makeMatchColor(value){
+  const lightness=
+    0.06+(value-1)/8*0.88;
+  return "oklch("+
+    lightness+
+    " "+
+    matchChroma+
+    " "+
+    matchHue+
+    ")";
 }
 /* ==================================================
-   FEEDBACK / SCORE
+   FINISH
 ================================================== */
 function finish(
-  isCorrect,
+  correctAnswer,
   message,
   error
 ){
-  if(answered){
-    return;
-  }
-  answered = true;
+  if(answered)return;
+  answered=true;
   attempts++;
-  if(isCorrect){
+  if(correctAnswer){
     correct++;
     streak++;
-    score += 10 + streak;
+    score+=10+streak;
   }else{
-    streak = 0;
-    score =
+    streak=0;
+    score=
       Math.max(
         0,
         score-2
       );
   }
-  errorSum += error || 0;
-  get("score").textContent =
+  errorSum+=error||0;
+  $("score").textContent=
     score;
-  get("streak").textContent =
+  $("streak").textContent=
     streak;
-  get("accuracy").textContent =
+  $("accuracy").textContent=
     Math.round(
       correct/attempts*100
-    ) + "%";
-  get("error").textContent =
+    )+"%";
+  $("error").textContent=
     (
       errorSum/attempts
     ).toFixed(2);
-  get("feedback").textContent =
+  $("feedback").textContent=
     message;
-  get("next")
+  $("next")
     .classList
     .remove("hide");
 }
@@ -406,436 +366,296 @@ function finish(
    NEW ROUND
 ================================================== */
 function newRound(){
-  answered = false;
-  get("feedback").textContent =
-    "";
-  get("next")
+  answered=false;
+  $("feedback").textContent="";
+  $("next")
     .classList
     .add("hide");
-  get("round").textContent =
+  $("round").textContent=
     round;
   /* =================================================
      COMPARE
   ================================================= */
-  if(mode === "compare"){
-    /*
-       Difference gets smaller
-       as rounds increase.
-    */
-    let base =
+  if(mode==="compare"){
+    const base=
       random(2,8);
-    let difference =
+    const difference=
       Math.max(
-        0.15,
-        0.9 - round*0.015
+        0.12,
+        0.8-round*0.015
       );
-    let dark =
-      base;
-    let light =
+    const high=
       Math.min(
         8.8,
         base+difference
       );
-    let aIsDark =
+    const low=
+      Math.max(
+        1.2,
+        base
+      );
+    const aHigh=
       Math.random()<0.5;
-    let valueA =
-      aIsDark
-      ? dark
-      : light;
-    let valueB =
-      aIsDark
-      ? light
-      : dark;
-    /*
-       Different colors.
-    */
-    let hueA =
-      Math.round(
-        random(0,360)
+    const va=
+      aHigh
+      ?high
+      :low;
+    const vb=
+      aHigh
+      ?low
+      :high;
+    $("a").style.background=
+      makeColor(va);
+    $("b").style.background=
+      makeColor(vb);
+    $("a").onclick=()=>{
+      const right=
+        va<vb;
+      finish(
+        right,
+        right
+        ?"Correct!"
+        :"Incorrect!",
+        0
       );
-    let hueB =
-      Math.round(
-        random(0,360)
+    };
+    $("b").onclick=()=>{
+      const right=
+        vb<va;
+      finish(
+        right,
+        right
+        ?"Correct!"
+        :"Incorrect!",
+        0
       );
-    let satA =
-      Math.round(
-        random(25,85)
-      );
-    let satB =
-      Math.round(
-        random(25,85)
-      );
-    get("compareA").style.background =
-      color(
-        valueA,
-        hueA,
-        satA
-      );
-    get("compareB").style.background =
-      color(
-        valueB,
-        hueB,
-        satB
-      );
-    get("compareA").onclick =
-      function(){
-        let right =
-          valueA < valueB;
-        finish(
-          right,
-          right
-            ? "Correct!"
-            : "Incorrect!",
-          0
-        );
-      };
-    get("compareB").onclick =
-      function(){
-        let right =
-          valueB < valueA;
-        finish(
-          right,
-          right
-            ? "Correct!"
-            : "Incorrect!",
-          0
-        );
-      };
+    };
   }
   /* =================================================
      GUESS VALUE
   ================================================= */
-  if(mode === "guess"){
-    /*
-       Values in 0.5 steps.
-    */
-    let value =
+  if(mode==="guess"){
+    const value=
       Math.round(
-        random(1,9)*2
+        random(1.5,8.5)*2
       )/2;
-    let hue =
-      Math.round(
-        random(0,360)
-      );
-    let saturation =
-      Math.round(
-        random(25,85)
-      );
-    get("guessColor").style.background =
-      color(
-        value,
-        hue,
-        saturation
-      );
-    /*
-       Create six possible answers.
-    */
-    let choices =
-      new Set();
-    choices.add(value);
+    $("gc").style.background=
+      makeColor(value);
+    const choices=
+      new Set([value]);
     while(
-      choices.size < 6
+      choices.size<6
     ){
-      let choice =
-        Math.round(
-          random(
-            Math.max(
-              1,
-              value-2
-            ),
-            Math.min(
-              9,
-              value+2
-            )
-          )*2
-        )/2;
-      choices.add(choice);
+      choices.add(
+        Math.max(
+          1,
+          Math.min(
+            9,
+            Math.round(
+              random(
+                value-2,
+                value+2
+              )*2
+            )/2
+          )
+        )
+      );
     }
-    get("answers").innerHTML =
-      "";
-    let array =
-      Array.from(choices);
-    array.sort(
-      function(){
-        return Math.random()-0.5;
-      }
-    );
-    array.forEach(
-      function(v){
-        let button =
-          document.createElement(
-            "button"
-          );
-        button.textContent =
-          v.toFixed(1);
-        button.onclick =
-          function(){
-            let error =
+    $("answers").innerHTML=
+      [...choices]
+      .sort(
+        ()=>Math.random()-0.5
+      )
+      .map(
+        v=>
+        '<button data-value="'+
+        v+
+        '">'+
+        v+
+        '</button>'
+      )
+      .join("");
+    document
+      .querySelectorAll(
+        "#answers button"
+      )
+      .forEach(
+        button=>{
+          button.onclick=()=>{
+            const error=
               Math.abs(
-                v-value
+                Number(
+                  button.dataset.value
+                )-value
               );
-            let right =
-              error < 0.26;
+            const right=
+              error<0.26;
             finish(
               right,
               right
-                ? "Correct!"
-                : "Incorrect — target was " +
-                  value.toFixed(1),
+              ?"Correct!"
+              :"Incorrect — target was "+
+                value.toFixed(1),
               error
             );
           };
-        get("answers")
-          .appendChild(button);
-      }
-    );
+        }
+      );
   }
   /* =================================================
      MATCH VALUE
   ================================================= */
-  if(mode === "match"){
-    let step =
+  if(mode==="match"){
+    const step=
       Number(
-        get("stepSize").value
+        $("stepSize").value
       );
-    let target;
-    /*
-       Generate target according
-       to selected step.
-    */
-    if(step === 0.1){
-      target =
+    let value;
+    if(step===0.1){
+      value=
         Math.round(
           random(1.5,8.5)*10
         )/10;
-    }
-    if(step === 0.5){
-      target =
+    }else if(step===0.5){
+      value=
         Math.round(
           random(1.5,8.5)*2
         )/2;
-    }
-    if(step === 1){
-      target =
+    }else{
+      value=
         Math.round(
           random(2,8)
         );
     }
+    $("target").textContent=
+      value.toFixed(1);
     /*
-       Store target on element.
+       CREATE THE COLOR ONCE.
+       Hue and Chroma stay fixed
+       throughout this round.
     */
-    get("targetColor").dataset.value =
-      target;
+    matchHue=
+      random(0,360);
+    matchChroma=
+      random(0.025,0.16);
     /*
-       Same hue and saturation
-       for both target and slider.
+       Slider starts at 5.
     */
-    let hue =
-      Math.round(
-        random(0,360)
-      );
-    let saturation =
-      Math.round(
-        random(30,75)
-      );
-    /*
-       Save these values so the
-       slider can use exactly
-       the same color.
-    */
-    get("yourColor").dataset.hue =
-      hue;
-    get("yourColor").dataset.saturation =
-      saturation;
-    /*
-       Display target.
-    */
-    get("targetColor").style.background =
-      color(
-        target,
-        hue,
-        saturation
-      );
-    /*
-       Start player's color
-       at Value 5.
-    */
-    get("slider").step =
+    $("slider").step=
       step;
-    get("slider").value =
+    $("slider").value=
       5;
-    get("sliderValue").textContent =
+    $("sliderValue").textContent=
       "5.0";
-    get("yourColor").style.background =
-      color(
-        5,
-        hue,
-        saturation
-      );
+    $("mc").style.background=
+      makeMatchColor(5);
   }
 }
 /* ==================================================
-   TAB: COMPARE
+   TABS
 ================================================== */
-get("tabCompare").onclick =
-  function(){
-    mode = "compare";
-    get("tabCompare")
-      .classList
-      .add("active");
-    get("tabGuess")
-      .classList
-      .remove("active");
-    get("tabMatch")
-      .classList
-      .remove("active");
-    get("compare")
-      .classList
-      .remove("hide");
-    get("guess")
-      .classList
-      .add("hide");
-    get("match")
-      .classList
-      .add("hide");
-    newRound();
-  };
-/* ==================================================
-   TAB: GUESS
-================================================== */
-get("tabGuess").onclick =
-  function(){
-    mode = "guess";
-    get("tabCompare")
-      .classList
-      .remove("active");
-    get("tabGuess")
-      .classList
-      .add("active");
-    get("tabMatch")
-      .classList
-      .remove("active");
-    get("compare")
-      .classList
-      .add("hide");
-    get("guess")
-      .classList
-      .remove("hide");
-    get("match")
-      .classList
-      .add("hide");
-    newRound();
-  };
-/* ==================================================
-   TAB: MATCH
-================================================== */
-get("tabMatch").onclick =
-  function(){
-    mode = "match";
-    get("tabCompare")
-      .classList
-      .remove("active");
-    get("tabGuess")
-      .classList
-      .remove("active");
-    get("tabMatch")
-      .classList
-      .add("active");
-    get("compare")
-      .classList
-      .add("hide");
-    get("guess")
-      .classList
-      .add("hide");
-    get("match")
-      .classList
-      .remove("hide");
-    newRound();
-  };
+document
+  .querySelectorAll(
+    ".tabs button"
+  )
+  .forEach(
+    button=>{
+      button.onclick=()=>{
+        mode=
+          button.dataset.mode;
+        document
+          .querySelectorAll(
+            ".tabs button"
+          )
+          .forEach(
+            b=>
+            b.classList
+            .remove("active")
+          );
+        button
+          .classList
+          .add("active");
+        [
+          "compare",
+          "guess",
+          "match"
+        ]
+        .forEach(
+          id=>
+          $(id)
+          .classList
+          .add("hide")
+        );
+        $(mode)
+          .classList
+          .remove("hide");
+        newRound();
+      };
+    }
+  );
 /* ==================================================
    SLIDER
 ================================================== */
-get("slider").oninput =
-  function(){
-    let value =
-      Number(
-        this.value
-      );
-    get("sliderValue").textContent =
-      value.toFixed(1);
-    let hue =
-      Number(
-        get("yourColor").dataset.hue
-      );
-    let saturation =
-      Number(
-        get("yourColor")
-          .dataset
-          .saturation
-      );
-    /*
-       IMPORTANT:
-       The slider changes ONLY
-       the Value / Lightness.
-       Hue and saturation remain
-       exactly the same.
-    */
-    get("yourColor").style.background =
-      color(
-        value,
-        hue,
-        saturation
-      );
-  };
+$("slider").oninput=e=>{
+  const value=
+    Number(
+      e.target.value
+    );
+  /*
+     DISPLAY VALUE
+  */
+  $("sliderValue").textContent=
+    value.toFixed(1);
+  /*
+     ONLY VALUE CHANGES.
+     matchHue stays exactly the same.
+     matchChroma stays exactly the same.
+  */
+  $("mc").style.background=
+    makeMatchColor(value);
+};
 /* ==================================================
    STEP SIZE
 ================================================== */
-get("stepSize").onchange =
-  function(){
-    newRound();
-  };
+$("stepSize").onchange=()=>{
+  newRound();
+};
 /* ==================================================
    CHECK MATCH
 ================================================== */
-get("check").onclick =
-  function(){
-    let target =
-      Number(
-        get("targetColor")
-          .dataset
-          .value
-      );
-    let guess =
-      Number(
-        get("slider").value
-      );
-    let error =
-      Math.abs(
-        target-guess
-      );
-    let right =
-      error <= 0.2;
-    finish(
-      right,
-      right
-        ? "Correct!"
-        : "Incorrect — target was " +
-          target.toFixed(1) +
-          " · error " +
-          error.toFixed(1),
-      error
+$("check").onclick=()=>{
+  const target=
+    Number(
+      $("target").textContent
     );
-  };
+  const guess=
+    Number(
+      $("slider").value
+    );
+  const error=
+    Math.abs(
+      target-guess
+    );
+  finish(
+    error<=0.2,
+    error<=0.2
+    ?"Correct!"
+    :"Incorrect — Target "+
+      target.toFixed(1)+
+      " · Error "+
+      error.toFixed(1),
+    error
+  );
+};
 /* ==================================================
    NEXT ROUND
 ================================================== */
-get("next").onclick =
-  function(){
-    round++;
-    newRound();
-  };
+$("next").onclick=()=>{
+  round++;
+  newRound();
+};
 /* ==================================================
-   START GAME
+   START
 ================================================== */
 newRound();
 </script>
